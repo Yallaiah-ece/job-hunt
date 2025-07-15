@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Resume Analyzer with AI Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for spinner and copy button positioning if needed,
+           though most styles are handled by Tailwind. */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,.3);
+            border-radius: 50%;
+            border-top-color: #000;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Ensure textareas handle pre-formatted text properly without breaking layout */
+        textarea {
+            white-space: pre-wrap; /* Allows wrapping but preserves whitespace */
+            overflow-wrap: break-word; /* Breaks long words if necessary */
+        }
+        
+        /* Chatbot Styles */
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .chatbot-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        
+        .chatbot-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chatbot-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chatbot-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .chat-message.user {
+            background: #e3f2fd;
+            color: #1976d2;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        
+        .chat-message.bot {
+            background: #f5f5f5;
+            color: #333;
+            align-self: flex-start;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .action-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .chat-input-container {
+            padding: 15px 20px;
+            border-top: 1px solid #e0e0e0;
+            background: #f9f9f9;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+        
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .send-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 12px 16px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            align-self: flex-start;
+            max-width: 80%;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) { animation-delay: 0s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: scale(1); opacity: 0.5; }
+            30% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        .copy-message-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+            margin-top: 8px;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Show copy button on message hover */
+        .chat-message:hover .copy-message-btn {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .chatbot-window {
+                width: 350px;
+                height: 500px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .chatbot-window {
+                width: 300px;
+                height: 450px;
+                bottom: 70px;
+                right: -10px;
+            }
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-50 min-h-screen flex flex-col items-center py-8">
+    <div class="container mx-auto p-4 max-w-6xl w-full bg-white rounded-lg shadow-xl">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ATS Resume Analyzer with AI Chatbot</h1>
+        
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <h3 class="text-lg font-semibold text-yellow-800 mb-3">📋 Career Transition Ready Answers</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <div class="bg-white border border-yellow-200 rounded-md p-3">
+                    <label class="block text-yellow-700 font-semibold mb-2 text-sm">Why left Cipla Pharmaceuticals → Prudential (2020):</label>
+                    <div class="flex items-start space-x-2">
+                        <textarea id="cipla-transition" readonly class="flex-grow p-2 border border-yellow-300 rounded-md bg-yellow-50 text-gray-800 text-xs h-20 resize-none">After 2 years at Cipla, I successfully modernized their healthcare data infrastructure and completed the Azure cloud migration project. I was seeking broader industry exposure and more complex data challenges. Prudential offered an exciting opportunity to work with financial services data, insurance analytics, and large-scale AWS infrastructure - expanding my cloud expertise beyond Azure to include AWS technologies and financial regulatory compliance.</textarea>
+                        <button class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-1 px-2 rounded-md shadow-sm transition duration-300 ease-in-out text-xs" onclick="copyTransitionAnswer('cipla-transition')">Copy</button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-yellow-200 rounded-md p-3">
+                    <label class="block text-yellow-700 font-semibold mb-2 text-sm">Why left Prudential → PNC Bank (2023):</label>
+                    <div class="flex items-start space-x-2">
+                        <textarea id="prudential-transition" readonly class="flex-grow p-2 border border-yellow-300 rounded-md bg-yellow-50 text-gray-800 text-xs h-20 resize-none">After 3 successful years at Prudential building scalable insurance data pipelines and AWS expertise, I was looking for opportunities to work with cutting-edge AI/ML initiatives and Microsoft's latest technologies. PNC Bank offered a senior role focusing on AI model support, Microsoft Fabric, and real-time analytics - allowing me to contribute to 22 AI models while expanding into advanced Azure services and financial technology innovation.</textarea>
+                        <button class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-1 px-2 rounded-md shadow-sm transition duration-300 ease-in-out text-xs" onclick="copyTransitionAnswer('prudential-transition')">Copy</button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-yellow-200 rounded-md p-3">
+                    <label class="block text-yellow-700 font-semibold mb-2 text-sm">Why seeking new opportunities now (2024):</label>
+                    <div class="flex items-start space-x-2">
+                        <textarea id="current-search" readonly class="flex-grow p-2 border border-yellow-300 rounded-md bg-yellow-50 text-gray-800 text-xs h-20 resize-none">While I've achieved significant success at PNC Bank supporting 22 AI models and optimizing data workflows, I'm seeking opportunities for continued growth in data engineering leadership roles. I'm particularly interested in organizations that are scaling their data infrastructure, implementing modern data mesh architectures, or expanding their AI/ML capabilities where I can contribute my multi-cloud expertise and drive enterprise-wide data transformation initiatives.</textarea>
+                        <button class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-1 px-2 rounded-md shadow-sm transition duration-300 ease-in-out text-xs" onclick="copyTransitionAnswer('current-search')">Copy</button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-yellow-200 rounded-md p-3">
+                    <label class="block text-yellow-700 font-semibold mb-2 text-sm">Overall Career Progression Strategy:</label>
+                    <div class="flex items-start space-x-2">
+                        <textarea id="career-progression" readonly class="flex-grow p-2 border border-yellow-300 rounded-md bg-yellow-50 text-gray-800 text-xs h-20 resize-none">My career transitions have been strategic moves to gain diverse industry experience (Healthcare → Insurance → Banking) while expanding my technical expertise across cloud platforms (Azure → AWS → Multi-cloud). Each role has built upon the previous, allowing me to develop comprehensive data engineering skills across different regulatory environments, data volumes, and business requirements, making me a well-rounded senior data engineer.</textarea>
+                        <button class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-1 px-2 rounded-md shadow-sm transition duration-300 ease-in-out text-xs" onclick="copyTransitionAnswer('career-progression')">Copy</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-3 border-t border-yellow-200">
+                <div class="flex flex-wrap gap-2">
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded-md transition duration-300" onclick="showTransitionTips()">💡 Interview Tips</button>
+                    <button class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-md transition duration-300" onclick="showRedFlags()">🚩 Avoid Red Flags</button>
+                    <button class="bg-purple-500 hover:bg-purple-600 text-white text-xs px-3 py-1 rounded-md transition duration-300" onclick="showPositiveFraming()">✨ Positive Framing</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <input type="text" class="flex-grow p-2 border border-blue-300 rounded-md bg-blue-100 text-blue-800 font-medium" id="copyInput" value="In accordance with industry standards" readonly>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out" onclick="copyText()">Copy Standard Phrase</button>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+            <div class="flex-1">
+                <label for="linkedin-link" class="block text-gray-700 font-semibold mb-1 text-sm">LinkedIn Profile:</label>
+                <div class="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-md p-1">
+                    <input type="text" class="flex-grow p-1 border border-gray-300 rounded-md bg-gray-100 text-gray-800 text-sm" id="linkedin-link" value="https://www.linkedin.com/in/yallaiah-onteru-907890259/" readonly>
+                    <button class="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-3 rounded-md shadow-sm transition duration-300 ease-in-out text-sm" onclick="copyLinkToClipboard('linkedin-link')">Copy</button>
+                    <span class="success-message text-green-600 ml-2 hidden text-sm" id="linkedin-link-success">Copied!</span>
+                </div>
+            </div>
+            
+            <div class="flex-1">
+                <label for="portfolio-link" class="block text-gray-700 font-semibold mb-1 text-sm">Portfolio Website:</label>
+                <div class="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-md p-1">
+                    <input type="text" class="flex-grow p-1 border border-gray-300 rounded-md bg-gray-100 text-gray-800 text-sm" id="portfolio-link" value="https://onteruyallaiah21.github.io/portfolio.yallaiah.ai/" readonly>
+                    <button class="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-3 rounded-md shadow-sm transition duration-300 ease-in-out text-sm" onclick="copyLinkToClipboard('portfolio-link')">Copy</button>
+                    <span class="success-message text-green-600 ml-2 hidden text-sm" id="portfolio-link-success">Copied!</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+            <div class="flex-1">
+                <label for="jobDescription" class="block text-gray-700 font-semibold mb-1">Job Description:</label>
+                <textarea id="jobDescription" placeholder="Paste the job description here..." class="w-full p-2 border border-gray-300 rounded-md h-32 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+            </div>
+            
+            <div class="flex-1">
+                <label for="resume" class="block text-gray-700 font-semibold mb-1">Resume: <span id="resume-status" class="text-xs text-gray-500">Loading from Word file...</span></label>
+                <textarea id="resume" placeholder="Loading your resume from Word file..." class="w-full p-2 border border-gray-300 rounded-md h-32 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+            <div class="flex-1">
+                <label for="peopleInfo" class="block text-gray-700 font-semibold mb-1">People Info (Name, Role, Company, Mutual Connections etc.):</label>
+                <textarea id="peopleInfo" placeholder="e.g., John Doe, Software Engineer at U-Haul, 2 mutual connections" class="w-full p-2 border border-gray-300 rounded-md h-20 resize-y focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"></textarea>
+            </div>
+            <div class="flex-1 flex flex-col justify-end">
+                <label for="promptAction" class="block text-gray-700 font-semibold mb-1">Select Action:</label>
+                <select id="promptAction" class="w-full p-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <option value="">-- Select a prompt action --</option>
+                    <option value="emailMessage">Generate Email Message</option>
+                    <option value="referralRequest">Generate Referral Request</option>
+                    <option value="linkedinNote">Generate LinkedIn Note (300 char)</option>
+                </select>
+                <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 text-base mt-4" onclick="generateSpecificOutput()">Generate Selected Prompt</button>
+            </div>
+        </div>
+        
+        <div class="flex justify-center gap-4 mb-4">
+            <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 text-base" onclick="generateOutput('prompt1')">ATS Analysis Prompt</button>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 text-base" onclick="generateOutput('prompt2')">Resume Enhancement Prompt</button>
+        </div>
+        
+        <div>
+            <label for="output" class="block text-gray-700 font-semibold mb-1">Generated Prompt Output:</label>
+            <div class="relative">
+                <textarea id="output" readonly class="w-full p-2 border border-gray-300 rounded-md h-40 resize-y bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+                <button class="absolute top-2 right-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-1 px-3 rounded-md shadow-sm transition duration-300 ease-in-out text-sm" onclick="copyToClipboard()">Copy Output</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chatbot-container">
+        <div class="chatbot-toggle" onclick="toggleChatbot()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/>
+                <circle cx="8" cy="9" r="1" fill="#667eea"/>
+                <circle cx="12" cy="9" r="1" fill="#667eea"/>
+                <circle cx="16" cy="9" r="1" fill="#667eea"/>
+            </svg>
+        </div>
+
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <span>AI Career Assistant 🤖</span>
+                <button onclick="toggleChatbot()" class="text-white hover:text-gray-200">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="chatbot-body" id="chatbotBody">
+                </div>
+
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Type your message or paste content to improve..." onkeypress="handleKeyPress(event)">
+                <button class="send-button" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Your Cohere API Key (DANGER: DO NOT USE IN PRODUCTION CLIENT-SIDE)
+        const COHERE_API_KEY = "DdH32VwNJgNAQhWqI2AVRuOStu8L2nzRMdAM1t7J";
+        
+        // Chat state
+        let chatHistory = []; // To store conversation turns
+        let currentAction = null; // To track what kind of help the user is requesting
+        let botTypingTimeout = null; // To clear previous typing animations if new message arrives
+
+        // Predefined expert prompts for better Cohere responses
+        const EXPERT_PROMPTS = {
+            reframe: `You are a senior executive recruiter and career coach with 15+ years of experience helping data engineers land top positions at Fortune 500 companies. Your expertise includes crafting messages that get 40%+ response rates.
+
+CANDIDATE PROFILE:
+- Name: Yallaiah Onteru
+- Experience: 6+ years Senior Data Engineer
+- Current: PNC Bank (supporting 22 AI models)
+- Previous: Prudential (AWS/Insurance), Cipla (Healthcare/Azure)
+- Skills: Azure Data Factory, AWS, Python, Spark, Delta Lake
+- Authorization: Eligible to work in US (OPT/EAD)
+
+TASK: Reframe this message for maximum recruiter response:
+"{{MESSAGE_PLACEHOLDER}}"
+
+REQUIREMENTS:
+✅ Professional but personable tone
+✅ Lead with specific quantifiable achievement (22 AI models, 30% cost reduction, etc.)
+✅ Mention 2-3 relevant technical skills for the role
+✅ Include work authorization upfront
+✅ End with specific, time-bound call to action
+✅ Keep under 280 characters for LinkedIn
+✅ Avoid buzzwords: "passionate," "rockstar," "ninja," "guru"
+
+OUTPUT FORMAT:
+Provide only the reframed message, nothing else.`,
+
+            email: `You are an executive communications specialist who has helped 500+ data engineers craft emails that land interviews at Google, Microsoft, Amazon, and top banks.
+
+CANDIDATE DETAILS:
+- Yallaiah Onteru, Senior Data Engineer
+- 6+ years experience: Healthcare → Insurance → Banking
+- Current: PNC Bank (22 AI models, Azure/AWS expertise)
+- Contact: (414) 275-0857, onteruyallaiah414@gmail.com
+- LinkedIn: linkedin.com/in/yallaiah-onteru-907890259
+- Portfolio: onteruyallaiah21.github.io/portfolio.yallaiah.ai
+
+TASK: Convert this to a professional email:
+"{{MESSAGE_PLACEHOLDER}}"
+
+EMAIL STRUCTURE:
+Subject: [Compelling subject with experience level]
+Dear [Name],
+[Professional opening paragraph with specific achievement]
+[Technical skills paragraph with quantified results]
+[Interest/value proposition paragraph]
+[Call to action with availability]
+Best regards,
+[Full signature block]
+
+REQUIREMENTS:
+- Professional subject line mentioning years of experience
+- Mention work authorization in US
+- Include 2-3 specific technical achievements
+- Reference current role at PNC Bank
+- Add complete contact information
+- Keep under 200 words total
+
+OUTPUT: Complete professional email ready to send.`,
+
+            referral: `You are a LinkedIn networking expert who has helped 1000+ professionals get employee referrals at top tech companies with 85% success rate.
+
+EMPLOYEE BACKGROUND:
+- Yallaiah Onteru, Senior Data Engineer
+- 6+ years: Cipla → Prudential → PNC Bank
+- Current: Supporting 22 AI models, Azure/AWS expertise
+- Authorized to work in US
+- Looking for: Senior Data Engineer roles
+
+TASK: Create employee referral request based on:
+"{{MESSAGE_PLACEHOLDER}}"
+
+REFERRAL MESSAGE STRUCTURE:
+1. Professional introduction (1 sentence)
+2. Specific role and company mention
+3. Brief relevant experience highlight (quantified)
+4. Polite referral request
+5. Work authorization statement
+6. Easy next step for them
+
+TONE: Professional, respectful, making it easy for them to help
+LENGTH: Under 150 words
+OUTCOME: High likelihood they'll forward to HR/hiring manager
+
+OUTPUT: Ready-to-send referral request message.`,
+
+            optimize: `You are a data-driven recruiter response optimization expert. Your messages get 45% response rates vs 3% industry average.
+
+CANDIDATE STRENGTH BANK:
+✅ 6+ years Senior Data Engineer experience
+✅ Multi-industry: Healthcare, Insurance, Banking
+✅ Current: PNC Bank supporting 22 AI models
+✅ Multi-cloud: Azure Data Factory, AWS Glue, Delta Lake
+✅ Quantified achievements: 30% cost reduction, real-time processing
+✅ US work authorization
+✅ Technical breadth: Python, Spark, ML pipelines
+
+ORIGINAL MESSAGE TO OPTIMIZE:
+"{{MESSAGE_PLACEHOLDER}}"
+
+OPTIMIZATION FRAMEWORK:
+🎯 ATTENTION: Start with specific, impressive metric
+⚡ RELEVANCE: Match their exact job requirements
+💪 CREDIBILITY: Include current role/company
+🔧 SKILLS: Mention 2-3 technologies they need
+📈 VALUE: Quantified business impact
+✅ LOGISTICS: Work authorization + availability
+📞 ACTION: Specific, easy next step
+
+OUTPUT: Optimized message that will get responded to within 24 hours.`,
+
+            transition: `You are a senior career transition consultant who has helped 2000+ data engineers explain job changes to land offers at top companies.
+
+CANDIDATE CAREER PATH:
+2019-2020: Cipla Pharmaceuticals (Healthcare, Azure migration)
+2020-2023: Prudential (Insurance, AWS expertise) 
+2024-Present: PNC Bank (AI models, Microsoft Fabric)
+
+POSITIVE TRANSITION FRAMEWORK:
+✅ Growth-focused language
+✅ Skills expansion narrative  
+✅ Industry diversification strength
+✅ Technical progression story
+✅ Achievement-based transitions
+✅ Future-oriented positioning
+
+QUESTION ABOUT: "{{MESSAGE_PLACEHOLDER}}"
+
+RESPONSE GUIDELINES:
+- Always start with achievement at previous company
+- Frame transition as strategic growth move
+- Emphasize skills gained, not problems left behind
+- Show progression: Azure → AWS → Multi-cloud
+- Highlight industry diversity as strength
+- End with value for new role
+
+OUTPUT: Professional transition explanation ready for interviews.`
+        };
+        
+        // Define the prompts outside the function to avoid re-creation on each call
+        const prompt1 = `
+You are an expert-level AI Resume Optimizer trained on ATS engines used by top enterprises.
+Your job is to perform a real-time ATS resume scan using extracted skills from a job description and match them with a candidate's resume.
+You will receive:
+Follow these steps precisely:
+SECTION-1
+is there any visa restrictions let me know like need clearances like that, cover letter needded  some thing like that
+SECTION-2.Technical Skills Comparison
+Create a table with 3 columns:
+JD Technical Skills (list exact skills from the JD)
+Resume Technical Skills (list matching/near-matching skills from the resume)
+Match Status (✅ Matched / ❌ Missing)
+Summarize matches/misses (e.g., "✅ Matched: X/Y | ❌ Missing: Y-X").
+SECTION-3.Non-Technical Skills Comparison
+Repeat the same table format as above for soft skills (e.g., teamwork, problem-solving).
+SECTION-4.ATS Matching Score Calculation:
+Technical Score = (Matched Technical Skills) / (Total JD Technical Skills)
+Non-Technical Score = (Matched Non-Technical Skills) / (Total JD Non-Technical Skills)
+Final ATS Score = Average of both, rounded to nearest whole %
+SECTION-5.Replacement Justification (Low-Weight Bullets to Swap)
+Identify missing technical skills from the JD TO RESUME 
+ADD Bullet points IN PROJECT WITH MIMIC REAL TIME WHICH ALIGNED WITH MY PROJECT BY MIXING THE ETCHNICAL SKILLS AND NON TECHNICALSS SKILLS IN ONE BULLWT POINT IF POSSIBLE :
+Be in Calibri, 12pt style
+Use real project-style phrasing (e.g., "Built…", "Implemented…")
+Highlight newly added skills using Calibri font style and by making bold 
+Fit contextually into user's resume
+For each bullet added, select one low-weight or redundant bullet in the resume that can be removed or replaced.
+Explain the reasoning behind the replacement decision
+Do not fabricate experience. Only infer skills if context exists. FOLLOW BELOW FORMAT TABLE
+Project    Original Bullet (Remove/Replace)    Reason for Replacement    Replaced With
+Input format:
+job_description={...}
+resume={...}
+Now perform the ATS scan and resume enhancement.
+`;
+
+        const prompt2 = `
+			I will Provide 
+			job_description={...}
+              resume={...}
+					## ✅ **Professional Resume Enhancement for ATS Optimization (Final Refined Prompt)**
+
+					### 🎯 **Core Mission**
+
+					Transform the provided resume into a compelling, authentic, and **100% ATS-optimized document** that aligns precisely with the job description. The goal is a resume that reads like it was written by a real professional—not a keyword-stuffing algorithm.
+
+					---
+
+					### 🔒 **Strict Language Policy: Forbidden Phrases**
+
+					To preserve credibility and eliminate fluff, **strictly prohibit** use of the following phrases or similar expressions in any section of the resume:
+
+					Self-starter,Championed,Specialized,Proven,Proven track record,Expert in,Advanced proficiency,Proven expertise,Expert in collaborating,Comprehensive experience,Advanced knowledge,Cutting-edge,State-of-the-art,Pioneering,Innovative,Robust,Dynamic,Synergistic,Leveraged,Maximized,Optimized,Driving force,Key player,Instrumental in,Adept at,Mastery of,Extensive background,Demonstrated ability,Highly skilled,Well-versed in
+
+					🛑 **Use only clear, context-driven language that describes real impact, tools used, and measurable outcomes.like below**
+                       Category,Examples
+						Specific Tools/Technologies,"Built using Python and Spark","Developed with Azure Data Factory and Databricks","Implemented using Apache Kafka and Delta Lake","Created pipelines with AWS Glue and Redshift","Configured Unity Catalog for data governance","Integrated Salesforce with ServiceNow systems"
+						Quantified Results,"Reduced processing time by 30%","Achieved 40% faster query execution","Supporting 22 AI models","Processing terabyte-scale datasets","Improved performance by 50%","Reduced operational costs by 25%","Managing 10+ data sources"
+						Action Verbs,"Designed, developed, implemented, configured","Built, created, established, integrated","Migrated, transformed, automated, deployed","Architected, engineered, optimized, monitored","Collaborated, supported, contributed, managed","Applied, executed, performed, delivered"
+						Context-Driven Language,"6+ years experience with SQL","Applied 4+ years of Agile methodologies","Worked in healthcare sector for 2+ years","Experience across financial services industry","Background in insurance data processing","Familiar with pharmaceutical regulations"
+						Measurable Outcomes,"Supporting 22 AI models","Processing millions of records daily","Handling 100TB+ data volumes","Serving 1000+ business users","Managing 24/7 production systems","Enabling real-time analytics for executives"
+						Business Context,"Ensuring HIPAA compliance","Meeting regulatory requirements","Supporting clinical research","Enabling risk management","Facilitating customer analytics","Driving operational efficiency"
+						Technical Precision,"Using REST and SOAP APIs","Implementing CDC processes","Configuring role-based access control","Establishing CI/CD pipelines","Building dimensional data models","Creating star schema architecture"
+						Collaboration Patterns,"Collaborated with data scientists and analysts","Worked with cross-functional teams","Partnered with business stakeholders","Supported product managers","Interfaced with senior leadership","Mentored junior team members"
+						Problem-Solving Focus,"Solved data quality issues","Addressed performance bottlenecks","Resolved integration challenges","Troubleshot pipeline failures","Identified optimization opportunities","Mitigated security vulnerabilities"
+						Process Implementation,"Established data governance frameworks","Implemented monitoring procedures","Created documentation standards","Developed testing protocols","Built quality assurance processes","Designed disaster recovery plans"
+						Natural Language Flow,"Tell a story about real work done","Show progression from problem to solution","Include specific details that demonstrate expertise","Use industry terminology correctly","Maintain professional tone without marketing fluff","Focus on impact rather than empty descriptors"
+
+					---
+
+					### 🧠 **Strategic Analysis Framework**
+
+					#### 1. **Skills Intelligence Extraction**
+
+					* **Technical Competencies:** Languages, tools, platforms, frameworks, cloud services, data systems
+					* **Professional Capabilities:** Data governance, stakeholder interaction, process automation, compliance
+
+					#### 🔍 **Gap Analysis Process**
+
+					* 🎯 **Missing Skills:** Required by JD, not in resume—must be naturally woven in
+					* ✅ **Aligned Strengths:** Present in resume and relevant—>retain
+					* 🤔 **Irrelevant Skills:** Present in resume but not aligned—remove unless they add genuine value
+
+					---
+
+					### ⚙️ **Enhancement Strategy**
+
+					#### 🔧 **For Missing Skills:**
+
+					* Integrate into existing project narratives with contextual logic
+					* Modify summary/project points to reflect these technologies authentically
+					* Do **not** force skills—use only where technically and chronologically appropriate
+
+					#### 🌐 **Cloud Platform Alignment:**
+
+					* Azure JD → Azure tools (ADF, ADLS, Synapse, Databricks)
+					* AWS JD → AWS tools (Glue, S3, Redshift, Lambda) + Snowflake, dbt
+					* GCP JD → GCP tools (BigQuery, Dataflow, Dataproc, GCS) + Snowflake, dbt
+					* Hybrid JD → Blend Azure/Hadoop or AWS/Big Data stack
+
+					#### 🖥 **Programming Languages Not in Resume:**
+
+					Mention under summary as *"experience with"* (e.g., Java, C, React) — **never** insert into project experience unless the tech was genuinely used.
+
+					### 🛠️ **Technical Skills Section (Immutable Format)**
+
+					⚠️ **Do NOT alter section headers or formatting. Only update tools based on JD priority (Top 5 tech only). In "Others", do not add anything do changes only mentioned below.
+					\`\`\`
+					Big Data Tools: Apache Spark, Hadoop, HDFS, Hive, Sqoop
+
+					Programming Languages: Python, PySpark, SQL
+
+					ETL & Workflow Tools: Airflow
+
+					Cloud Platforms: 
+					  [If AWS JD] Microsoft Azure (ADF, ADLS, Synapse, Databricks), AWS (S3, EMR, Glue, Lambda, Redshift)
+					  [If GCP JD] Microsoft Azure (ADF, ADLS, Synapse, Databricks), GCP (BigQuery, Dataflow, Cloud Storage, Dataproc, Cloud Functions)
+					  [If Azure JD] Microsoft Azure (ADF, ADLS, Synapse, Databricks), AWS (S3, EMR, Glue, Lambda, Redshift)
+
+					Databases: Oracle, Snowflake, MySQL, PostgreSQL, MongoDB
+
+					DevOps & CI/CD: GitHub Actions, Docker
+
+					Visualization Tools: Power BI
+
+					AI/ML & GenAI: LLM, MLlib, Scikit-learn, pandas, NumPy, TensorFlow, PyTorch, LangChain, RAG, GPT, Prompt Engineering, OpenAI
+
+					Others: Data Governance, Data Compliance, Agile, Jira, Confluence
+					\`\`\`
+					### 📁 **Project Experience Optimization**
+
+					#### **PNC Bank (8–12 bullets)**
+
+					* Financial domain + legacy Cloudera to Azure migration
+					* Data mart on Synapse with Spark, Hive integrations
+					* ******Strictly No AWS or GCP tech permitted*********
+
+					#### **Prudential (8–12 bullets)** *(cloud dynamically adjusts to JD)*
+
+					* Insurance + MDM + Governance
+					* JD-based cloud:
+
+					  * AWS → AWS stack + dbt + Snowflake
+					  * GCP → GCP stack + dbt + Snowflake
+					  * Azure/mixed → AWS stack (default)
+					* Connects with Salesforce, SAP, ServiceNow
+
+					#### **Cipla Pharmaceuticals (5–6 bullets)**
+
+					* Healthcare & regulatory compliance
+					* Azure + Hadoop stack (no AWS/GCP)
+					### ✍️ **Professional Summary (13–15 Points)**
+					* 35–45 words each
+					* Project and impact-based, with technologies used in specific, measurable contexts
+					* Reflect domain and cloud experience per JD alignment
+					* Avoid *all* "dumb" words; let tools, data volumes, outcomes, and logic speak for themselves
+					### 📋 **Final Output Must Include:**
+					* Professional Summary (13–15 bullets)
+					* PNC Project (8–12 bullets)
+					* Prudential Project (8–12 bullets)
+					* Cipla Project (5–6 bullets)
+					* Original company names, job titles, dates preserved
+					* Python, Java, Scala skills included in appropriate context
+					### 🧭 **Optimization Philosophy**
+					The final resume must:
+					* **Pass ATS filters** through contextual keyword placement
+					* **Engage human reviewers** through realistic, industry-grounded storytelling
+					* **Avoid all buzzwords and fluff** by demonstrating capability through tools, impact, and outcomes
+					* **Maintain tone of an experienced Senior Data Engineer**, not a sales brochure or machine-written document
+					
+
+********keep in mind strictly i need below format *****************
+            {
+                      "name": "Full Name",
+                      "title": "Professional Title",
+                      "portfolio": "https://onteruyallaiah21.github.io/portfolio.yallaiah.ai/",
+                      "email": "onteruyallaiah414@gmail.com",
+                      "phone": "(414)-275-0857",
+                      "linkedin": "https://www.linkedin.com/in/yallaiah-onteru-907890259",
+                      "professional_summary": [
+                        "Short summary line 1",
+                        "Short summary line 2",
+                        "Short summary line 15"
+                      ],
+                      "technical_skills": {
+                        "Cloud Platforms": ["Azure", "AWS", "GCP"],
+                        "Databases": ["PostgreSQL", "Oracle", "Cassandra"],
+                        "Programming": ["Python", "pyspark", "SQL"]
+                      },
+                      "experience": [
+                        {
+                          "role": "Job Title",
+                          "company": "Company Name",
+                          "duration": "Start Date - End Date or Present",
+                          "responsibilities": [
+                            "Responsibility line 1",
+                            "Responsibility line 2",
+                            "Responsibility line 8"
+                          ],
+                          "environment": ["Tech1", "Tech2", "Tech3"]
+                        }
+                      ],
+                      "education": {
+                        "degree": "Degree Title",
+                        "institution": "University Name"
+                      },
+                      "certifications": [
+                        "Certification 1",
+                        "Certification 2"
+                      ]
+            }
+`;
+
+        // New prompts for the additional options
+        const emailMessagePrompt = `
+You are an executive communications specialist who has helped 500+ data engineers craft emails that land interviews at top companies.
+
+CANDIDATE DETAILS:
+- Yallaiah Onteru, Senior Data Engineer
+- 6+ years experience: Healthcare → Insurance → Banking
+- Current: PNC Bank (22 AI models, Azure/AWS expertise)
+- Contact: (414) 275-0857, onteruyallaiah414@gmail.com
+- LinkedIn: linkedin.com/in/yallaiah-onteru-907890259
+- Portfolio: onteruyallaiah21.github.io/portfolio.yallaiah.ai
+- Work Authorization: Eligible to work in US (OPT/EAD)
+
+JOB DESCRIPTION:
+{{JOB_DESCRIPTION_PLACEHOLDER}}
+
+PEOPLE INFO:
+{{PEOPLE_INFO_PLACEHOLDER}}
+
+TASK: Craft a professional email to the contact mentioned in PEOPLE INFO, expressing interest in the role from the JOB DESCRIPTION.
+
+EMAIL STRUCTURE:
+Subject: [Compelling subject with experience level]
+Dear [Name from People Info],
+[Professional opening paragraph with specific achievement related to JD]
+[Technical skills paragraph with quantified results relevant to JD]
+[Interest/value proposition paragraph matching JD requirements]
+[Call to action with availability]
+Best regards,
+[Full signature block]
+
+REQUIREMENTS:
+- Professional subject line mentioning years of experience
+- Include 2-3 specific technical achievements relevant to JD
+- Reference current role at PNC Bank and multi-cloud expertise
+- Add complete contact information (phone, email, LinkedIn, portfolio)
+- Keep under 200 words total.
+
+OUTPUT: Complete professional email ready to send.
+`;
+
+        const referralRequestPrompt = `
+You are a LinkedIn networking expert who has helped 1000+ professionals get employee referrals at top tech companies with 85% success rate.
+
+EMPLOYEE BACKGROUND:
+- Yallaiah Onteru, Senior Data Engineer
+- 6+ years: Cipla → Prudential → PNC Bank
+- Current: Supporting 22 AI models, Azure/AWS expertise
+- Authorized to work in US
+- Looking for: Senior Data Engineer roles
+
+JOB DESCRIPTION:
+{{JOB_DESCRIPTION_PLACEHOLDER}}
+
+PEOPLE INFO:
+{{PEOPLE_INFO_PLACEHOLDER}}
+
+TASK: Create an employee referral request message to the person detailed in PEOPLE INFO, referring to the job in the JOB DESCRIPTION.
+
+REFERRAL MESSAGE STRUCTURE:
+1. Professional introduction, mentioning their role/company (from People Info).
+2. Specific role and company mention from Job Description.
+3. Brief relevant experience highlight (quantified) matching JD.
+4. Polite referral request.
+5. Work authorization statement.
+6. Easy next step for them (e.g., connecting).
+
+TONE: Professional, respectful, making it easy for them to help.
+LENGTH: Under 150 words.
+OUTCOME: High likelihood they'll forward to HR/hiring manager.
+
+OUTPUT: Ready-to-send referral request message.
+`;
+
+        const linkedinNotePrompt = `
+You are a LinkedIn outreach expert, specializing in crafting concise and impactful notes for referrals.
+
+CANDIDATE PROFILE:
+- Name: Yallaiah Onteru
+- Experience: 6+ years Senior Data Engineer
+- Current: PNC Bank (supporting 22 AI models)
+- Previous: Prudential (AWS/Insurance), Cipla (Healthcare/Azure)
+- Skills: Azure Data Factory, AWS, Python, Spark, Delta Lake
+- Authorization: Eligible to work in US (OPT/EAD)
+
+JOB DESCRIPTION:
+{{JOB_DESCRIPTION_PLACEHOLDER}}
+
+PEOPLE INFO:
+{{PEOPLE_INFO_PLACEHOLDER}}
+
+TASK: Draft a LinkedIn connection request note or follow-up message to the person in PEOPLE INFO for the role in the JOB DESCRIPTION.
+
+REQUIREMENTS:
+✅ Professional but personable tone.
+✅ Mention specific role (e.g., Data Engineer) and company.
+✅ Briefly highlight one key relevant achievement or skill.
+✅ Include a polite call to action (e.g., chat/referral).
+✅ Strictly under 300 characters.
+✅ Avoid generic phrases.
+
+OUTPUT FORMAT:
+Provide only the LinkedIn note, nothing else.
+`;
+
+        // Fixed resume content loading
+        const simulatedResumeContent = `Yallaiah Onteru
+Senior Data Engineer
+Portfolio | LinkedIn | onteruyallaiah414@gmail.com | (414)-275-0857
+PROFESSIONAL SUMMARY
+•	Senior Data Engineer with 6+ years of expertise in Azure Data Factory (ADF), Azure Databricks, PySpark, SQL, and Delta Lake for designing large-scale data pipelines and ETL processes.
+•	Proven ability to implement Medallion Architecture, API-based ingestion, real-time streaming, and data security across cloud and on-premises environments.
+•	Specialized in Azure Data Factory pipelines, event-driven triggers, parameterized workflows, and CI/CD automation using GitHub Actions and Azure DevOps.
+•	Expert in developing Databricks PySpark notebooks for data ingestion from Web HTTP services, SQL databases, and APIs with Delta Lake versioning and schema enforcement.
+•	Experienced in implementing Unity Catalog for data governance, role-based access control (RBAC), and Azure Key Vault integration for secure credential management.
+•	Proficient in building Delta Live Tables (DLT) for incremental loading, materialized views, and comprehensive data quality checks across streaming and batch processes.
+•	Skilled in Azure Monitor and Log Analytics for automated monitoring, alerting, job scheduling, and real-time job tracking with SLA adherence optimization.
+•	Advanced knowledge of complex SQL queries and Spark SQL for populating reporting dimension and fact tables with performance optimization and cost-effective storage solutions.
+•	Hands-on experience with Azure Data Lake Gen2, Azure Synapse Analytics, and Apache Spark for processing structured and semi-structured data at scale.
+•	Expertise in Change Data Capture (CDC), incremental data loading, and CHECKPOINTLOCATION for streaming pipeline optimization and business intelligence.
+•	Strong background in data modeling, dimensional modeling, and Delta Lakehouse architecture for analytics and reporting requirements.
+•	Familiar with frontend technologies and cross-functional collaboration in enterprise environments for comprehensive data solution delivery.
+•	Proven track record in optimizing data processing workflows, reducing operational costs, and implementing robust data security and governance frameworks.
+•	Experience with IAM RBAC, Entra ID, Azure Key Vault, and comprehensive security configuration for enterprisegrade data platforms.
+•	Expert in data migration strategies, complex SQL queries optimization, and job scheduling frameworks for enterprise-grade data platforms and analytics solutions.
+TECHNICAL SKILLS
+
+•	Big Data Tools: Apache Spark, Hadoop, HDFS, Hive, Sqoop, Delta Lake
+•	Programming Languages: Python, PySpark, SQL, Scala, Java
+•	ETL & Workflow Tools: Airflow, dbt
+•	Cloud Platforms: Microsoft Azure (ADF, ADLS, Synapse, Databricks), AWS (S3, EMR, Glue, Lambda, Redshift)
+•	Databases: Oracle, Snowflake, MySQL, PostgreSQL, MongoDB, Azure SQL
+•	DevOps & CI/CD: GitHub Actions, Azure DevOps, Git, Docker
+•	Visualization Tools: Power BI
+•	AI/ML & GenAI: LLM, MLlib, Scikit-learn, pandas, NumPy, TensorFlow, PyTorch, LangChain, RAG, GPT, Prompt Engineering, OpenAI
+•	Others: Data Governance, Data Quality Frameworks, Agile, Jira, Confluence
+PROFESSIONAL EXPERIENCE
+Role: Senior Data Engineer
+Client: PNC Bank 	April 2024 – Present
+Responsibilities:
+•	Built scalable Data Mart on top of CDP Layer using Medallion Architecture to support 22 AI models, modernizing data architecture for real-time insights and report generation.
+•	Designed Azure Data Factory (ADF) pipelines for end-to-end data ingestion, transformation, and orchestration from multiple data sources including SQL Server and Oracle databases.
+•	Implemented automated job scheduling and orchestration workflows using Azure Data Factory triggers and parameterized pipelines for optimized data processing cycles.
+•	Designed comprehensive data migration strategies from legacy systems to Azure cloud platform with zerodowntime deployment and data integrity validation.
+•	Developed complex SQL queries and stored procedures for data transformation, aggregation, and business logic implementation across multiple database systems.
+•	Created advanced Spark SQL scripts to populate reporting dimension and fact tables with performance optimization and business logic implementation.
+•	Integrated Azure Key Vault with ADF-linked services for secure credential management and enterprise-grade security compliance across all data pipelines.
+•	Configured Unity Catalog for data governance, role-based access control (RBAC), and metadata management across the entire data platform.
+•	Developed Delta Live Tables (DLT) for incremental loading, materialized views, and automated data quality checks with schema evolution support.
+•	Implemented Change Data Capture (CDC) processes for real-time data synchronization and incremental loading to improve data freshness and reduce processing latency.
+•	Automated monitoring and alerting via Azure Monitor and Log Analytics with custom dashboards for real-time job tracking and SLA adherence optimization.
+•	Established CI/CD pipelines using GitHub Actions and Azure DevOps to automate deployments with version control and environment management.
+•	Architected comprehensive data security framework using IAM RBAC, Entra ID, and Azure Key Vault for enterprisegrade access control and compliance.
+•	Optimized Apache Spark processing workflows reducing operational costs by 30% while maintaining highperformance data processing capabilities.
+•	Designed API-based ingestion frameworks supporting multiple data formats and sources with automated schema detection and data validation processes.
+Environment: Azure Data Factory, Azure Databricks, Delta Lake, Apache Spark, PySpark, Azure Data Lake Gen2, Azure
+Synapse Analytics, Unity Catalog, Delta Live Tables, Azure Key Vault, Azure Monitor, Log Analytics, GitHub Actions, Azure DevOps, IAM RBAC, Entra ID, SQL Server, Oracle, Spark SQL, CDC, API Integration
+Role: Cloud Data Engineer Client: Prudential 	Dec 2020 – Sept
+2023
+Responsibilities:
+•	Developed scalable data pipeline architecture converting unsuccessful insurance applications to qualified leads and integrating with Salesforce Service Cloud for automated lead distribution.
+•	Engineered comprehensive ETL pipelines using AWS Glue, Apache Spark (PySpark), and Python to process large volumes of financial and transactional data for insurance workflows.
+•	Designed secure data lake architecture on Amazon S3 with AWS Lake Formation governance ensuring fine-grained access control and regulatory compliance.
+•	Executed large-scale data migration projects from legacy Oracle and SQL Server systems to AWS cloud infrastructure with comprehensive data validation and quality assurance.
+•	Implemented automated job scheduling using AWS Data Pipeline and Airflow ensuring reliable data processing workflows and timely delivery of analytics-ready datasets.
+•	Optimized complex SQL queries and database performance tuning achieving 30% faster query execution in Redshift with advanced indexing and partitioning strategies.
+•	Integrated Salesforce Sales Cloud, SAP, and ServiceNow systems creating unified data platform for comprehensive customer relationship management and operational analytics.
+•	Automated pipeline deployment using GitHub Actions with comprehensive version control, testing, and metadata consistency management across multiple environments.
+•	Orchestrated complex data workflows using Airflow ensuring timely availability of analytics-ready data in Redshift and visualization tools.
+•	Built unified metadata and master data management framework leveraging AWS Glue Data Catalog for streamlined data lineage and hierarchical data access control.
+Environment: AWS Glue, Amazon S3, Redshift, AWS Lake Formation, AWS Lambda, Apache Spark, PySpark, Apache
+Kafka, Spark Streaming, Docker, Python, Oracle, GitHub Actions, AWS Glue Data Catalog, CloudWatch, Salesforce Sales Cloud, SAP, ServiceNow, Airflow, Power BI
+Role: Azure Data Engineer Client: Cipla Pharmaceuticals 	Jan 2019 – Dec 2020
+Responsibilities:
+•	Modernized healthcare data infrastructure integrating clinical, operational, and patient data from on-premises Hadoop systems into Azure cloud platform.
+•	Built hybrid cloud platform integrating on-premises Hadoop (HDFS, Hive, Spark) with Azure Data Lake Gen2 and Azure Synapse Analytics for scalable healthcare data processing.
+•	Developed ETL pipelines using Azure Data Factory moving data from clinical systems, EHRs, and legacy databases into Azure SQL DB and Synapse for downstream analytics.
+•	Implemented real-time streaming workflows using Apache Kafka, Azure Event Hubs, and Structured Streaming in Databricks for live clinical events processing.
+•	Contributed to healthcare-specific data marts development using dbt enabling insights into treatment outcomes and patient adherence metrics through Azure Synapse.
+•	Supported cloud migration from Oracle, Teradata, and Hadoop to Azure using Azure Database Migration Service ensuring data accuracy and regulatory compliance including HIPAA standards.
+Environment: Azure Data Factory, Azure Synapse Analytics, Databricks, Delta Lake, Apache Spark, PySpark, SQL, Apache Kafka, Azure Event Hubs, HDFS, Hive, Azure DevOps, Azure Monitor, dbt, Azure SQL DB, Oracle, Teradata
+EDUCATION
+
+Master in Information Technology with a concentration in Artificial Intelligence and Data Analytics, at University of Wisconsin-Milwaukee
+CERTIFICATIONS
+
+•	Azure Data Engineer – DP-203
+•	Azure AI Engineer – AI-101
+•	AWS Data Engineer Associate
+•	Salesforce Developer-Associate`;
+
+        // Simulate loading resume content from Word file
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.getElementById('resume').value = simulatedResumeContent;
+                document.getElementById('resume-status').textContent = "Resume loaded";
+            }, 1500);
+            
+            // Display initial chatbot welcome message and quick actions
+            displayInitialBotMessage();
+        });
+
+        // Chatbot Functions
+        function toggleChatbot() {
+            const chatbotWindow = document.getElementById('chatbotWindow');
+            if (chatbotWindow.style.display === 'flex') {
+                chatbotWindow.style.display = 'none';
+            } else {
+                chatbotWindow.style.display = 'flex';
+                scrollToBottom(); // Scroll to bottom when opening
+            }
+        }
+
+        function displayInitialBotMessage() {
+            const chatBody = document.getElementById('chatbotBody');
+            chatBody.innerHTML = ''; // Clear previous messages
+            
+            const welcomeMessage = `Hi! I'm your AI Career Assistant powered by Cohere. I can help you with:
+            
+• Reframe recruiter messages professionally
+• Convert messages to formal emails
+• Create employee referral requests
+• Optimize outreach for better responses
+• Answer career transition questions`;
+            
+            addBotMessage(welcomeMessage); // Add without typing effect for initial message
+
+            const quickActionsHTML = `
+                <div class="quick-actions">
+                    <button class="action-button" onclick="handleQuickAction('reframe')">
+                        📝 Reframe My Message
+                    </button>
+                    <button class="action-button" onclick="handleQuickAction('email')">
+                        ✉️ Convert to Email Format
+                    </button>
+                    <button class="action-button" onclick="handleQuickAction('referral')">
+                        🤝 Request Employee Referral
+                    </button>
+                    <button class="action-button" onclick="handleQuickAction('optimize')">
+                        🚀 Optimize for Better Response
+                    </button>
+                </div>
+            `;
+            // Append quick actions directly after the welcome message, not as a separate chat bubble
+            const lastBotMessageDiv = chatBody.lastChild;
+            if (lastBotMessageDiv) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = quickActionsHTML;
+                while (tempDiv.firstChild) {
+                    lastBotMessageDiv.appendChild(tempDiv.firstChild);
+                }
+            }
+            scrollToBottom();
+        }
+
+        function handleQuickAction(action) {
+            currentAction = action;
+            let message = '';
+            
+            switch(action) {
+                case 'reframe':
+                    message = "I'll help you reframe your message to be more professional and compelling. Please paste the message you'd like me to improve:";
+                    break;
+                case 'email':
+                    message = "I'll convert your message into a professional email format with subject line, proper greeting, and signature. Please paste your message:";
+                    break;
+                case 'referral':
+                    message = "I'll help you create a professional referral request message. Please provide:\n\n1. Company name\n2. Position you applied for\n3. Employee's name (if you know it)\n4. Any additional context";
+                    break;
+                case 'optimize':
+                    message = "I'll optimize your message for better response rates. Please paste the message you want to improve:";
+                    break;
+            }
+            
+            addBotMessage(message); // Use addBotMessage for the prompt
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addUserMessage(message);
+            input.value = '';
+            
+            // Show typing indicator
+            const typingIndicator = showTypingIndicator();
+            
+            // Process message with AI
+            try {
+                const responseText = await processWithCohere(message);
+                
+                // Remove typing indicator before adding response
+                hideTypingIndicator(typingIndicator); 
+                
+                // Add bot response with typing effect
+                addBotMessage(responseText, true); 
+                currentAction = null; // Reset action after a response
+            } catch (error) {
+                hideTypingIndicator(typingIndicator);
+                addBotMessage("I apologize, but I'm having trouble processing your request right now. Please try again in a moment. Error: " + error.message);
+                console.error('Cohere API Error:', error);
+            }
+        }
+
+        function addUserMessage(message) {
+            const chatBody = document.getElementById('chatbotBody');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message user';
+            messageDiv.textContent = message;
+            
+            chatBody.appendChild(messageDiv);
+            scrollToBottom();
+            chatHistory.push({ role: 'user', message: message });
+        }
+
+        function addBotMessage(message, typeEffect = false) {
+            const chatBody = document.getElementById('chatbotBody');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message bot';
+            
+            const pElement = document.createElement('p'); // Create a p tag inside for text
+            messageDiv.appendChild(pElement);
+
+            // Add copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-message-btn';
+            copyBtn.textContent = 'Copy';
+            copyBtn.onclick = () => copyMessageToClipboard(message);
+            messageDiv.appendChild(copyBtn);
+            
+            chatBody.appendChild(messageDiv);
+
+            if (typeEffect) {
+                typeMessage(message, pElement, () => {
+                    // Callback after typing is complete, ensure scroll to bottom
+                    scrollToBottom(); 
+                });
+            } else {
+                pElement.innerHTML = message.replace(/\n/g, '<br>');
+                scrollToBottom();
+            }
+            chatHistory.push({ role: 'bot', message: message });
+        }
+
+        // New function to simulate typing effect
+        function typeMessage(message, targetElement, callback) {
+            if (botTypingTimeout) {
+                clearTimeout(botTypingTimeout); // Clear any previous typing animation
+            }
+            targetElement.innerHTML = ''; // Clear content before typing
+            const words = message.split(' ');
+            let i = 0;
+
+            function addNextWord() {
+                if (i < words.length) {
+                    targetElement.innerHTML += (i > 0 ? ' ' : '') + words[i];
+                    scrollToBottom(); // Scroll as new words appear
+                    i++;
+                    botTypingTimeout = setTimeout(addNextWord, 50); // Adjust typing speed here (ms per word)
+                } else if (callback) {
+                    callback();
+                }
+            }
+            addNextWord();
+        }
+
+
+        function showTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (!typingIndicator) { // Create if it doesn't exist
+                const chatBody = document.getElementById('chatbotBody');
+                const indicatorDiv = document.createElement('div');
+                indicatorDiv.id = 'typingIndicator';
+                indicatorDiv.className = 'typing-indicator';
+                indicatorDiv.innerHTML = `
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                `;
+                chatBody.appendChild(indicatorDiv);
+                scrollToBottom();
+                return indicatorDiv; // Return the newly created element
+            }
+            typingIndicator.style.display = 'block';
+            scrollToBottom();
+            return typingIndicator;
+        }
+
+        function hideTypingIndicator(indicatorElement) {
+            if (indicatorElement) {
+                indicatorElement.style.display = 'none';
+            }
+        }
+
+        function scrollToBottom() {
+            const chatBody = document.getElementById('chatbotBody');
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function copyMessageToClipboard(message) {
+            navigator.clipboard.writeText(message).then(() => {
+                // You could add a small visual feedback on the button here (e.g., change text to 'Copied!')
+            }).catch(err => {
+                console.error('Failed to copy message: ', err);
+            });
+        }
+
+        async function processWithCohere(userMessage) {
+            let prompt = '';
+            
+            // Decide which expert prompt to use based on currentAction or general intent
+            if (currentAction === 'reframe') {
+                prompt = EXPERT_PROMPTS.reframe.replace('{{MESSAGE_PLACEHOLDER}}', userMessage);
+            } else if (currentAction === 'email') {
+                prompt = EXPERT_PROMPTS.email.replace('{{MESSAGE_PLACEHOLDER}}', userMessage);
+            } else if (currentAction === 'referral') {
+                prompt = EXPERT_PROMPTS.referral.replace('{{MESSAGE_PLACEHOLDER}}', userMessage);
+            } else if (currentAction === 'optimize') {
+                prompt = EXPERT_PROMPTS.optimize.replace('{{MESSAGE_PLACEHOLDER}}', userMessage);
+            } else if (userMessage.toLowerCase().includes('transition') || 
+                       userMessage.toLowerCase().includes('why left') || 
+                       userMessage.toLowerCase().includes('job change') ||
+                       userMessage.toLowerCase().includes('career move') ||
+                       userMessage.toLowerCase().includes('cipla') ||
+                       userMessage.toLowerCase().includes('prudential') ||
+                       userMessage.toLowerCase().includes('pnc')) {
+                prompt = EXPERT_PROMPTS.transition.replace('{{MESSAGE_PLACEHOLDER}}', userMessage);
+            } else {
+                // General career assistance if no specific action or transition keywords
+                prompt = `You are an AI career assistant specializing in data engineering job searches. The user said: "${userMessage}"
+                
+Provide helpful, specific advice for their job search needs. If they're asking about messaging, provide concrete examples. If they need help with strategy, give actionable steps.
+                
+Response:`;
+            }
+            
+            console.log("Sending prompt to Cohere:", prompt); // For debugging
+            
+            const response = await fetch('https://api.cohere.ai/v1/generate', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${COHERE_API_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Cohere-Version': '2022-12-06'
+                },
+                body: JSON.stringify({
+                    model: 'command', // You can try 'command-r' or 'command-r-plus' if you have access and need stronger models
+                    prompt: prompt,
+                    max_tokens: 600,
+                    temperature: 0.7,
+                    truncate: 'END',
+                    // Adding chat history is crucial for maintaining context,
+                    // but requires Cohere's chat endpoint or careful prompt engineering.
+                    // For now, we are just using the last user message.
+                    // You might consider adding `p` to the prompt in the expert_prompts.
+                    // p: chatHistory.map(item => ({ user_name: item.role, text: item.message }))
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Cohere API Error Response:", errorData);
+                throw new Error(`API call failed: ${response.status} - ${errorData.message || JSON.stringify(errorData)}`);
+            }
+
+            const data = await response.json();
+            if (data.generations && data.generations.length > 0) {
+                return data.generations[0].text.trim();
+            } else {
+                return "No response generated from AI. Please try rephrasing your request.";
+            }
+        }
+
+        // Original ATS Resume Analyzer Functions
+        function generateOutput(promptType) {
+            let jobDesc = document.getElementById('jobDescription').value.trim();
+            let resume = document.getElementById('resume').value.trim();
+            
+            if (!jobDesc || !resume) {
+                document.getElementById('output').value = "Please enter both job description and resume text to generate output.";
+                return;
+            }
+            
+            const escapedJobDesc = JSON.stringify(jobDesc);
+            const escapedResume = JSON.stringify(resume);
+            
+            const selectedPrompt = promptType === 'prompt1' ? prompt1 : prompt2;
+            const output = `job_description=${escapedJobDesc}\n\nresume=${escapedResume}\n\n${selectedPrompt}`;
+            document.getElementById('output').value = output;
+        }
+
+        // New function to handle specific prompt generation
+        function generateSpecificOutput() {
+            let jobDesc = document.getElementById('jobDescription').value.trim();
+            let peopleInfo = document.getElementById('peopleInfo').value.trim();
+            let selectedAction = document.getElementById('promptAction').value;
+            let outputTextarea = document.getElementById('output');
+            let prompt = '';
+
+            if (!jobDesc || !peopleInfo || !selectedAction) {
+                outputTextarea.value = "Please fill in Job Description, People Info, and select an action to generate the prompt.";
+                return;
+            }
+
+            const escapedJobDesc = JSON.stringify(jobDesc);
+            const escapedPeopleInfo = JSON.stringify(peopleInfo);
+            
+            if (selectedAction === 'emailMessage') {
+                prompt = emailMessagePrompt.replace('{{JOB_DESCRIPTION_PLACEHOLDER}}', escapedJobDesc)
+                                            .replace('{{PEOPLE_INFO_PLACEHOLDER}}', escapedPeopleInfo);
+            } else if (selectedAction === 'referralRequest') {
+                prompt = referralRequestPrompt.replace('{{JOB_DESCRIPTION_PLACEHOLDER}}', escapedJobDesc)
+                                               .replace('{{PEOPLE_INFO_PLACEHOLDER}}', escapedPeopleInfo);
+            } else if (selectedAction === 'linkedinNote') {
+                prompt = linkedinNotePrompt.replace('{{JOB_DESCRIPTION_PLACEHOLDER}}', escapedJobDesc)
+                                            .replace('{{PEOPLE_INFO_PLACEHOLDER}}', escapedPeopleInfo);
+            }
+
+            outputTextarea.value = `job_description=${escapedJobDesc}\n\npeople_info=${escapedPeopleInfo}\n\n${prompt}`;
+        }
+
+        function copyToClipboard() {
+            const outputText = document.getElementById('output');
+            outputText.select();
+            document.execCommand('copy');
+
+            const copyBtn = document.querySelector('#output + button'); // Select button next to #output
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 2000);
+        }
+
+        function copyText() {
+            const input = document.getElementById("copyInput");
+            input.select();
+            input.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+        }
+        
+        function copyLinkToClipboard(elementId) {
+            const copyText = document.getElementById(elementId);
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            
+            document.execCommand("copy");
+            
+            const successElement = document.getElementById(elementId + "-success");
+            successElement.classList.remove('hidden');
+            
+            setTimeout(() => {
+                successElement.classList.add('hidden');
+            }, 2000);
+        }
+
+        // Career Transition Functions
+        function copyTransitionAnswer(elementId) {
+            const copyText = document.getElementById(elementId);
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            
+            document.execCommand("copy");
+            
+            // Show brief success indicator
+            const button = copyText.nextElementSibling;
+            const originalText = button.textContent;
+            button.textContent = '✓';
+            button.style.background = '#10b981'; // Tailwind green-600
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '#d97706'; // Tailwind yellow-600
+            }, 2000);
+        }
+
+        function showTransitionTips() {
+            const tips = `💡 INTERVIEW TRANSITION TIPS:
+
+🎯 DO's:
+• Always frame transitions as growth opportunities
+• Mention specific technologies/skills gained at each role
+• Show progression: Healthcare → Insurance → Banking
+• Emphasize learning from different industries
+• Connect each move to expanding expertise
+
+📝 STRUCTURE:
+1. Acknowledge positive experience at previous company
+2. Mention specific achievements/projects completed
+3. Explain growth opportunity that motivated change
+4. Connect to skills relevant for new role
+
+🗣️ TONE:
+• Professional and positive
+• Future-focused, not negative about past
+• Specific about technical growth
+• Show strategic career planning
+
+⏰ TIMING:
+• Keep answers under 60 seconds
+• Practice beforehand
+• Be confident and direct`;
+
+            alert(tips);
+        }
+
+        function showRedFlags() {
+            const redFlags = `🚩 AVOID THESE RED FLAGS:
+
+❌ NEVER SAY:
+• "Better pay/salary"
+• "Toxic management"
+• "Poor work-life balance"
+• "Company was failing"
+• "Conflicts with team"
+• "Boring work"
+• "Limited growth"
+
+❌ NEGATIVE LANGUAGE:
+• "I hated..."
+• "They wouldn't let me..."
+• "Management didn't understand..."
+• "The company was disorganized..."
+
+❌ PERSONAL REASONS:
+• Family issues
+• Relationship problems
+• Health problems (unless legally required)
+• Financial difficulties
+
+⚠️ WARNING SIGNS TO INTERVIEWER:
+• Multiple short-term jobs
+• Negative attitude about employers
+• Lack of clear career direction
+• Blaming others for problems
+
+✅ INSTEAD FOCUS ON:
+• Technical growth
+• Industry diversity
+• Skill expansion
+• Strategic career moves`;
+
+            alert(redFlags);
+        }
+
+        function showPositiveFraming() {
+            const framing = `✨ POSITIVE FRAMING TECHNIQUES:
+
+🎯 REFRAME NEGATIVES:
+Bad: "Limited growth opportunities"
+Good: "Seeking broader technical challenges"
+
+Bad: "Management changes"
+Good: "Completed major project, ready for new challenges"
+
+Bad: "Underpaid"
+Good: "Looking for role matching my expanded skillset"
+
+🔄 TRANSITION LANGUAGE:
+• "Successfully completed..." → "Ready for next challenge"
+• "Gained expertise in..." → "Seeking to expand into..."
+• "Delivered results..." → "Looking to apply skills in..."
+
+📈 PROGRESSION WORDS:
+• Advancement
+• Growth
+• Expansion
+• Enhancement
+• Development
+• Opportunity
+• Challenge
+
+🏆 ACHIEVEMENT FOCUS:
+• Start with accomplishments
+• End with future goals
+• Connect past success to new role
+• Show continuous learning
+
+💼 INDUSTRY DIVERSITY AS STRENGTH:
+"My experience across Healthcare, Insurance, and Banking gives me unique perspective on data challenges across regulated industries, making me adaptable to any business context."`;
+
+            alert(framing);
+        }
+    </script>
+</body>
+</html>
