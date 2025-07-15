@@ -567,12 +567,81 @@ Now perform the ATS scan and resume enhancement.
               resume={...}
 					## ✅ **Professional Resume Enhancement for ATS Optimization (Final Refined Prompt)**
 
-					### 🎯 **Core Mission**
+				         You are an expert technical recruiter and hiring manager.
+Analyze the job description below and return a structured YAML analysis to assess candidate fit.
 
-					Transform the provided resume into a compelling, authentic, and **100% ATS-optimized document** that aligns precisely with the job description. The goal is a resume that reads like it was written by a real professional—not a keyword-stuffing algorithm.
+Extract the following:
 
-					---
+1. Business Context
 
+* Company domain: What the company does
+* Role focus: What problem this role solves
+* Team structure: Who this role collaborates with or reports to
+
+2. Technical Skills
+
+* Explicitly Required: Skills and technologies exactly as written in the JD
+* Inferred Skills (with justification): Skills standard for this role type but not mentioned; justify each
+
+3. Tools and Technologies
+
+* Explicitly Mentioned: Tools/platforms exactly as written
+* Commonly Expected (inferred): Standard tools based on the role’s domain or workflows; justify each
+
+4. Experience Requirements
+
+* Extract years of experience, education, and proficiency indicators
+
+5. Soft Skills
+
+* Explicit: Directly stated soft skills
+* Inferred: Implied soft skills based on wording or responsibilities
+
+6. Key Phrases Indicating Culture/Priorities
+
+* Extract exact phrases from the JD that reflect company values
+
+7. Good to Mention (Missing but Valuable)
+   List expected but missing tools, practices, or skills
+
+* Format each as:
+* \[Item] – \[Why it’s commonly expected for this role type]
+
+Format your output strictly as YAML:
+
+```yaml
+Business Context:
+  Company domain: 
+  Role focus: 
+  Team structure: 
+
+Technical Skills:
+  Explicitly Required:
+    - 
+  Inferred Skills (with justification):
+    - 
+
+Tools and Technologies:
+  Explicitly Mentioned:
+    - 
+  Commonly Expected (inferred):
+    - 
+
+Experience Requirements:
+  - 
+
+Soft Skills:
+  Explicit:
+    - 
+  Inferred:
+    - 
+
+Key Phrases Indicating Culture/Priorities:
+  - 
+
+Good to Mention (Missing but Valuable):
+
+					
 					### 🔒 **Strict Language Policy: Forbidden Phrases**
 
 					To preserve credibility and eliminate fluff, **strictly prohibit** use of the following phrases or similar expressions in any section of the resume:
