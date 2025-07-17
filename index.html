@@ -562,106 +562,64 @@ Now perform the ATS scan and resume enhancement.
 `;
 
         const prompt2 = `
-			I will Provide 
+
+I will Provide 
 			job_description={...}
               resume={...}
-					## ✅ **Professional Resume Enhancement for ATS Optimization (Final Refined Prompt)**
-
-				         You are an expert technical recruiter and hiring manager.
+					You are an expert technical recruiter and hiring manager.
 Analyze the job description below and return a structured YAML analysis to assess candidate fit.
-
 Extract the following:
-
 1. Business Context
-
 * Company domain: What the company does
 * Role focus: What problem this role solves
 * Team structure: Who this role collaborates with or reports to
-
 2. Technical Skills
-
 * Explicitly Required: Skills and technologies exactly as written in the JD
 * Inferred Skills (with justification): Skills standard for this role type but not mentioned; justify each
-
 3. Tools and Technologies
-
 * Explicitly Mentioned: Tools/platforms exactly as written
 * Commonly Expected (inferred): Standard tools based on the role’s domain or workflows; justify each
-
 4. Experience Requirements
-
 * Extract years of experience, education, and proficiency indicators
-
 5. Soft Skills
-
 * Explicit: Directly stated soft skills
 * Inferred: Implied soft skills based on wording or responsibilities
-
 6. Key Phrases Indicating Culture/Priorities
-
 * Extract exact phrases from the JD that reflect company values
-
 7. Good to Mention (Missing but Valuable)
    List expected but missing tools, practices, or skills
-
 * Format each as:
-* \[Item] – \[Why it’s commonly expected for this role type]
+* [Item] – [Why it’s commonly expected for this role type]
+gather do analysis on below skills and include thos points in my resume 
 
-Format your output strictly as YAML:
-
-```yaml
 Business Context:
   Company domain: 
   Role focus: 
   Team structure: 
-
 Technical Skills:
   Explicitly Required:
     - 
   Inferred Skills (with justification):
     - 
-
 Tools and Technologies:
   Explicitly Mentioned:
     - 
   Commonly Expected (inferred):
     - 
-
 Experience Requirements:
   - 
-
 Soft Skills:
   Explicit:
     - 
   Inferred:
     - 
-
 Key Phrases Indicating Culture/Priorities:
   - 
+Good to Mention (Missing but Valuable)
 
-Good to Mention (Missing but Valuable):
+NO NEED TO  print BOVE FORMAT JUST ANALYSE AND GATHER ll info ND BASED ON BELOW REAQUIREMENTS PRINT JSON ONLY 
 
 					
-					### 🔒 **Strict Language Policy: Forbidden Phrases**
-
-					To preserve credibility and eliminate fluff, **strictly prohibit** use of the following phrases or similar expressions in any section of the resume:
-
-					Self-starter,Championed,Specialized,Proven,Proven track record,Expert in,Advanced proficiency,Proven expertise,Expert in collaborating,Comprehensive experience,Advanced knowledge,Cutting-edge,State-of-the-art,Pioneering,Innovative,Robust,Dynamic,Synergistic,Leveraged,Maximized,Optimized,Driving force,Key player,Instrumental in,Adept at,Mastery of,Extensive background,Demonstrated ability,Highly skilled,Well-versed in
-
-					🛑 **Use only clear, context-driven language that describes real impact, tools used, and measurable outcomes.like below**
-                       Category,Examples
-						Specific Tools/Technologies,"Built using Python and Spark","Developed with Azure Data Factory and Databricks","Implemented using Apache Kafka and Delta Lake","Created pipelines with AWS Glue and Redshift","Configured Unity Catalog for data governance","Integrated Salesforce with ServiceNow systems"
-						Quantified Results,"Reduced processing time by 30%","Achieved 40% faster query execution","Supporting 22 AI models","Processing terabyte-scale datasets","Improved performance by 50%","Reduced operational costs by 25%","Managing 10+ data sources"
-						Action Verbs,"Designed, developed, implemented, configured","Built, created, established, integrated","Migrated, transformed, automated, deployed","Architected, engineered, optimized, monitored","Collaborated, supported, contributed, managed","Applied, executed, performed, delivered"
-						Context-Driven Language,"6+ years experience with SQL","Applied 4+ years of Agile methodologies","Worked in healthcare sector for 2+ years","Experience across financial services industry","Background in insurance data processing","Familiar with pharmaceutical regulations"
-						Measurable Outcomes,"Supporting 22 AI models","Processing millions of records daily","Handling 100TB+ data volumes","Serving 1000+ business users","Managing 24/7 production systems","Enabling real-time analytics for executives"
-						Business Context,"Ensuring HIPAA compliance","Meeting regulatory requirements","Supporting clinical research","Enabling risk management","Facilitating customer analytics","Driving operational efficiency"
-						Technical Precision,"Using REST and SOAP APIs","Implementing CDC processes","Configuring role-based access control","Establishing CI/CD pipelines","Building dimensional data models","Creating star schema architecture"
-						Collaboration Patterns,"Collaborated with data scientists and analysts","Worked with cross-functional teams","Partnered with business stakeholders","Supported product managers","Interfaced with senior leadership","Mentored junior team members"
-						Problem-Solving Focus,"Solved data quality issues","Addressed performance bottlenecks","Resolved integration challenges","Troubleshot pipeline failures","Identified optimization opportunities","Mitigated security vulnerabilities"
-						Process Implementation,"Established data governance frameworks","Implemented monitoring procedures","Created documentation standards","Developed testing protocols","Built quality assurance processes","Designed disaster recovery plans"
-						Natural Language Flow,"Tell a story about real work done","Show progression from problem to solution","Include specific details that demonstrate expertise","Use industry terminology correctly","Maintain professional tone without marketing fluff","Focus on impact rather than empty descriptors"
-
 					---
 
 					### 🧠 **Strategic Analysis Framework**
@@ -677,29 +635,34 @@ Good to Mention (Missing but Valuable):
 					* ✅ **Aligned Strengths:** Present in resume and relevant—>retain
 					* 🤔 **Irrelevant Skills:** Present in resume but not aligned—remove unless they add genuine value
 
-					---
+					Rules
+					=====
 
-					### ⚙️ **Enhancement Strategy**
+					Enhancement Strategy
 
-					#### 🔧 **For Missing Skills:**
+					For Missing Skills:**
 
 					* Integrate into existing project narratives with contextual logic
 					* Modify summary/project points to reflect these technologies authentically
 					* Do **not** force skills—use only where technically and chronologically appropriate
 
-					#### 🌐 **Cloud Platform Alignment:**
+					**Cloud Platform Alignment:**
 
 					* Azure JD → Azure tools (ADF, ADLS, Synapse, Databricks)
 					* AWS JD → AWS tools (Glue, S3, Redshift, Lambda) + Snowflake, dbt
 					* GCP JD → GCP tools (BigQuery, Dataflow, Dataproc, GCS) + Snowflake, dbt
 					* Hybrid JD → Blend Azure/Hadoop or AWS/Big Data stack
 
-					#### 🖥 **Programming Languages Not in Resume:**
+					Programming Languages Not in Resume:**
 
 					Mention under summary as *"experience with"* (e.g., Java, C, React) — **never** insert into project experience unless the tech was genuinely used.
 
 					### 🛠️ **Technical Skills Section (Immutable Format)**
-
+		personal Information
+		=====================
+		1."title":  chnage this title best suitable for the jd single title best suitable one 
+        Technical SKILLS
+		======================
 					⚠️ **Do NOT alter section headers or formatting. Only update tools based on JD priority (Top 5 tech only). In "Others", do not add anything do changes only mentioned below.
 					\`\`\`
 					Big Data Tools: Apache Spark, Hadoop, HDFS, Hive, Sqoop
@@ -725,13 +688,18 @@ Good to Mention (Missing but Valuable):
 					\`\`\`
 					### 📁 **Project Experience Optimization**
 
-					#### **PNC Bank (8–12 bullets)**
+   **PNC Bank (8–12 bullets)**
+   ===============================
 
 					* Financial domain + legacy Cloudera to Azure migration
 					* Data mart on Synapse with Spark, Hive integrations
+					*Project and impact-based, with technologies used in specific, measurable contexts
+					* Reflect domain and cloud experience per JD alignment
+					* Avoid *all* "dumb" words; let tools, data volumes, outcomes, and logic speak for themselves
 					* ******Strictly No AWS or GCP tech permitted*********
 
-					#### **Prudential (8–12 bullets)** *(cloud dynamically adjusts to JD)*
+	**Prudential (8–12 bullets)** *(cloud dynamically adjusts to JD)*
+	=================================================================
 
 					* Insurance + MDM + Governance
 					* JD-based cloud:
@@ -740,31 +708,62 @@ Good to Mention (Missing but Valuable):
 					  * GCP → GCP stack + dbt + Snowflake
 					  * Azure/mixed → AWS stack (default)
 					* Connects with Salesforce, SAP, ServiceNow
+					* each bullet point 210 to 230 charcters, that include jd skills and tools and 
+					Project and impact-based, with technologies used in specific, measurable contexts
+					* Reflect domain and cloud experience per JD alignment
+					* Avoid *all* "dumb" words; let tools, data volumes, outcomes, and logic speak for themselves
+					
 
-					#### **Cipla Pharmaceuticals (5–6 bullets)**
+	   **Cipla Pharmaceuticals (6–8 bullets)**
+	   =====================================================================
 
 					* Healthcare & regulatory compliance
 					* Azure + Hadoop stack (no AWS/GCP)
 					### ✍️ **Professional Summary (13–15 Points)**
-					* 35–45 words each
+					* each bullet point 210 to 230 charcters, that include jd skills and tools and 
 					* Project and impact-based, with technologies used in specific, measurable contexts
 					* Reflect domain and cloud experience per JD alignment
 					* Avoid *all* "dumb" words; let tools, data volumes, outcomes, and logic speak for themselves
-					### 📋 **Final Output Must Include:**
+		**Final Output Must Include:**
+		=============================
 					* Professional Summary (13–15 bullets)
-					* PNC Project (8–12 bullets)
-					* Prudential Project (8–12 bullets)
-					* Cipla Project (5–6 bullets)
+					* PNC Project (8–12 bullets),each bullet point 210 to 230 charcters
+					* Prudential Project (8–12 bullets),each bullet point 210 to 230 charcters
+					* Cipla Project (5–6 bullets),,each bullet point 210 to 230 charcters
 					* Original company names, job titles, dates preserved
-					* Python, Java, Scala skills included in appropriate context
-					### 🧭 **Optimization Philosophy**
+					* Python,Scala is mandatory based on jd if needed mention other languges skills included in appropriate context
+	      **Optimization Philosophy**
+		  ===========================
 					The final resume must:
 					* **Pass ATS filters** through contextual keyword placement
 					* **Engage human reviewers** through realistic, industry-grounded storytelling
 					* **Avoid all buzzwords and fluff** by demonstrating capability through tools, impact, and outcomes
 					* **Maintain tone of an experienced Senior Data Engineer**, not a sales brochure or machine-written document
-					
+		  **Strict Language Policy: Forbidden Phrases**
+		  ==============================================
 
+					To preserve credibility and eliminate fluff, **strictly prohibit** use of the following phrases or similar expressions in any section of the resume:
+                    Track record,Proven ability,
+					Self-starter,Championed,Specialized,Proven,Proven track record,Expert in,
+					Advanced proficiency,Proven expertise,Expert in collaborating,Comprehensive experience,Advanced knowledge,Cutting-edge,
+					State-of-the-art,Pioneering,Innovative,Robust,Dynamic,Synergistic,Leveraged,Maximized,Optimized,Driving force,Key player,Instrumental in,Adept at,Mastery of,
+					Extensive background,Demonstrated ability,Highly skilled,Well-versed in
+
+					🛑 **Use only clear, context-driven language that describes real impact, tools used, and measurable outcomes.like below**
+                       Category,Examples
+						Specific Tools/Technologies,"Built using Python and Spark","Developed with Azure Data Factory and Databricks","Implemented using Apache Kafka and Delta Lake","Created pipelines with AWS Glue and Redshift","Configured Unity Catalog for data governance","Integrated Salesforce with ServiceNow systems"
+						Quantified Results,"Reduced processing time by 30%","Achieved 40% faster query execution","Supporting 22 AI models","Processing terabyte-scale datasets","Improved performance by 50%","Reduced operational costs by 25%","Managing 10+ data sources"
+						Action Verbs,"Designed, developed, implemented, configured","Built, created, established, integrated","Migrated, transformed, automated, deployed","Architected, engineered, optimized, monitored","Collaborated, supported, contributed, managed","Applied, executed, performed, delivered"
+						Context-Driven Language,"6+ years experience with SQL","Applied 4+ years of Agile methodologies","Worked in healthcare sector for 2+ years","Experience across financial services industry","Background in insurance data processing","Familiar with pharmaceutical regulations"
+						Measurable Outcomes,"Supporting 22 AI models","Processing millions of records daily","Handling 100TB+ data volumes","Serving 1000+ business users","Managing 24/7 production systems","Enabling real-time analytics for executives"
+						Business Context,"Ensuring HIPAA compliance","Meeting regulatory requirements","Supporting clinical research","Enabling risk management","Facilitating customer analytics","Driving operational efficiency"
+						Technical Precision,"Using REST and SOAP APIs","Implementing CDC processes","Configuring role-based access control","Establishing CI/CD pipelines","Building dimensional data models","Creating star schema architecture"
+						Collaboration Patterns,"Collaborated with data scientists and analysts","Worked with cross-functional teams","Partnered with business stakeholders","Supported product managers","Interfaced with senior leadership","Mentored junior team members"
+						Problem-Solving Focus,"Solved data quality issues","Addressed performance bottlenecks","Resolved integration challenges","Troubleshot pipeline failures","Identified optimization opportunities","Mitigated security vulnerabilities"
+						Process Implementation,"Established data governance frameworks","Implemented monitoring procedures","Created documentation standards","Developed testing protocols","Built quality assurance processes","Designed disaster recovery plans"
+						Natural Language Flow,"Tell a story about real work done","Show progression from problem to solution","Include specific details that demonstrate expertise","Use industry terminology correctly","Maintain professional tone without marketing fluff","Focus on impact rather than empty descriptors"
+              strictly   you should by doing above all analysis you need to give only below format , no comments no emojis nothing just json format
+              ======================================================================================================================================
 ********keep in mind strictly i need below format *****************
             {
                       "name": "Full Name",
@@ -805,6 +804,7 @@ Good to Mention (Missing but Valuable):
                         "Certification 2"
                       ]
             }
+\`\`\`
 `;
 
         // New prompts for the additional options
