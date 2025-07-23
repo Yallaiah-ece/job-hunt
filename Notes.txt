@@ -1,0 +1,10 @@
+check the python version exists or not python --version
+
+
+pip install -r requirements.txt
+
+
+pip install pyinstaller
+
+
+2.pyinstaller --onefile --windowed --icon=Yallaiah.ico bold_Resume_Generator_v2.py
