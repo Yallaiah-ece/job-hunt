@@ -564,9 +564,9 @@ Now perform the ATS scan and resume enhancement.
         const prompt2 = `
 
 I will Provide 
-			job_description={...}
-              resume={...}
-					You are an expert technical recruiter and hiring manager.
+job_description={...}
+resume={...}
+You are an expert technical recruiter and hiring manager.
 Analyze the job description below and return a structured YAML analysis to assess candidate fit.
 Extract the following:
 1. Business Context
@@ -658,21 +658,27 @@ NO NEED TO  print BOVE FORMAT JUST ANALYSE AND GATHER ll info ND BASED ON BELOW 
 					Mention under summary as *"experience with"* (e.g., Java, C, React) — **never** insert into project experience unless the tech was genuinely used.
 
 					### 🛠️ **Technical Skills Section (Immutable Format)**
-		personal Information
-		=====================
-		1."title":  chnage this title best suitable for the jd single title best suitable one like ["Analytics Engineer,Data Engineer, powerbi developer, databricks engineer, aws data engineer, azure data engneer"]
-        Technical SKILLS
-		======================
-					⚠️ **Do NOT alter section headers or formatting. Only update tools based on JD priority (Top 5 tech only). In "Others", do not add anything do changes only mentioned below.
-					\`\`\`
-					Big Data Tools: Apache Spark, Hadoop, HDFS, Hive, Sqoop
+1.personal Information
+=====================
+Given a job description (JD), analyze the content—skills, technologies, responsibilities, seniority level, and cloud platform focus—and generate one single best job title that:
+Accurately reflects the role described in the JD.
+Matches the seniority level implied by the JD (exclude junior/entry if experience required is 6+ years).
+Highlights the primary domain or technology focus (e.g., Data Engineer, Analytics Engineer, Lead Data Engineer, Power BI Developer, etc.).
+Prioritizes clarity, ATS keyword optimization, and relevance.
+Returns only the single job title as output, no explanations or extra text.
 
-					Programming Languages: Python, PySpark, SQL
+2.Technical SKILLS
+======================
+⚠️ **Do NOT alter section headers or formatting. Only update tools based on JD priority (Top 5 tech only). In "Others", do not add anything do changes only mentioned below.
+\`\`\`
+Big Data Tools: Apache Spark, Hadoop, HDFS, Hive, Sqoop
 
-					ETL & Workflow Tools: Airflow
+Programming Languages: Python, PySpark, SQL
 
-					Cloud Platforms: 
-					  [If AWS JD] Microsoft Azure (ADF, ADLS, Synapse, Databricks), AWS (S3, EMR, Glue, Lambda, Redshift)
+ETL & Workflow Tools: Airflow
+
+Cloud Platforms: 
+[If AWS JD] Microsoft Azure (ADF, ADLS, Synapse, Databricks), AWS (S3, EMR, Glue, Lambda, Redshift)
 					  [If GCP JD] Microsoft Azure (ADF, ADLS, Synapse, Databricks), GCP (BigQuery, Dataflow, Cloud Storage, Dataproc, Cloud Functions)
 					  [If Azure JD] Microsoft Azure (ADF, ADLS, Synapse, Databricks), AWS (S3, EMR, Glue, Lambda, Redshift)
 
@@ -687,22 +693,34 @@ NO NEED TO  print BOVE FORMAT JUST ANALYSE AND GATHER ll info ND BASED ON BELOW 
 					Others: Data Governance, Data Compliance, Agile, Jira, Confluence
 					\`\`\`
 					### 📁 **Project Experience Optimization**
-
-   **PNC Bank (8–12 bullets)**
+			 
+ **PNC Bank (11–12 bullets)**
    ===============================
+•	Core project technology: migrate legacy Cloudera pipelines to the Azure ecosystem only:
+•	Azure Data Factory (ADF), Azure Data Lake Storage Gen2 (ADLS), Synapse Analytics, Databricks, Power BI.
+•	Built and maintained data marts supporting 22 AI models, significantly reducing AI model training times.
+•	Delivered real-time analytics integrated with core banking and risk management systems.
+•	Ensured compliance with SOX, PCI-DSS, and regulatory reporting.
+•	Used Azure-native governance and monitoring tools like Azure Purview and Azure Monitor.
+•	If the job description lists additional non-Azure tools/skills (insert here: {Additional_Tools_List}), integrate these keywords naturally and strictly only if they do not duplicate functionality of Azure tools already in use.
+•	For example, if ADF is present, do not mention other ETL tools like Informatica or Talend.
+•	If Power BI is used for visualization, exclude Tableau or SSRS.
+•	Avoid multiple tools serving the same purpose within the same project.
+•	No mention of AWS, GCP, or other cloud providers besides Azure.
+•	Repeat relevant JD keywords and Azure skills naturally multiple times across bullets to optimize ATS matches.
+•	Use past tense, strong action verbs; avoid generic buzzwords like "proven ability," "cutting-edge," or "synergistic."
+•	Each bullet must be 210–230 characters in length.
+•	Emphasize impacts such as improved AI model training speed, real-time decision support, audit readiness, pipeline reliability, data quality, and governance.
+•	Highlight collaboration with AI/ML teams, compliance teams, and other stakeholders.
+•	Only include technologies available and relevant during the project timeline.
+•	Output only bullet points, no extra explanations.
 
-					* Financial domain + legacy Cloudera to Azure migration
-					* Data mart on Synapse with Spark, Hive integrations
-					*Project and impact-based, with technologies used in specific, measurable contexts
-					* Reflect domain and cloud experience per JD alignment
-					* Avoid *all* "dumb" words; let tools, data volumes, outcomes, and logic speak for themselves
-					* ******Strictly No AWS or GCP tech permitted*********
 
-	**Prudential (8–12 bullets)** *(cloud dynamically adjusts to JD)*
-	=================================================================
 
-					* Insurance + MDM + Governance
-					* JD-based cloud:
+**Prudential (8–12 bullets)** *(cloud dynamically adjusts to JD)*
+=================================================================
+* Insurance + MDM + Governance
+* JD-based cloud:
 
 					  * AWS → AWS stack + dbt + Snowflake
 					  * GCP → GCP stack + dbt + Snowflake
@@ -714,8 +732,8 @@ NO NEED TO  print BOVE FORMAT JUST ANALYSE AND GATHER ll info ND BASED ON BELOW 
 					* Avoid *all* "dumb" words; let tools, data volumes, outcomes, and logic speak for themselves
 					
 
-	   **Cipla Pharmaceuticals (8–10 bullets)**
-	   =====================================================================
+**Cipla Pharmaceuticals (8–10 bullets)**
+=====================================================================
 
 					* Healthcare & regulatory compliance
 					* Azure + Hadoop stack (no AWS/GCP)
@@ -915,81 +933,80 @@ Provide only the LinkedIn note, nothing else.
 
         // Fixed resume content loading
         const simulatedResumeContent = `Yallaiah Onteru
-Senior Data Engineer
-Portfolio | LinkedIn | onteruyallaiah414@gmail.com | (414)-275-0857
-PROFESSIONAL SUMMARY
-•	Senior Data Engineer with 6+ years of expertise in Azure Data Factory (ADF), Azure Databricks, PySpark, SQL, and Delta Lake for designing large-scale data pipelines and ETL processes.
-•	Proven ability to implement Medallion Architecture, API-based ingestion, real-time streaming, and data security across cloud and on-premises environments.
-•	Specialized in Azure Data Factory pipelines, event-driven triggers, parameterized workflows, and CI/CD automation using GitHub Actions and Azure DevOps.
-•	Expert in developing Databricks PySpark notebooks for data ingestion from Web HTTP services, SQL databases, and APIs with Delta Lake versioning and schema enforcement.
-•	Experienced in implementing Unity Catalog for data governance, role-based access control (RBAC), and Azure Key Vault integration for secure credential management.
-•	Proficient in building Delta Live Tables (DLT) for incremental loading, materialized views, and comprehensive data quality checks across streaming and batch processes.
-•	Skilled in Azure Monitor and Log Analytics for automated monitoring, alerting, job scheduling, and real-time job tracking with SLA adherence optimization.
-•	Advanced knowledge of complex SQL queries and Spark SQL for populating reporting dimension and fact tables with performance optimization and cost-effective storage solutions.
-•	Hands-on experience with Azure Data Lake Gen2, Azure Synapse Analytics, and Apache Spark for processing structured and semi-structured data at scale.
-•	Expertise in Change Data Capture (CDC), incremental data loading, and CHECKPOINTLOCATION for streaming pipeline optimization and business intelligence.
-•	Strong background in data modeling, dimensional modeling, and Delta Lakehouse architecture for analytics and reporting requirements.
-•	Familiar with frontend technologies and cross-functional collaboration in enterprise environments for comprehensive data solution delivery.
-•	Proven track record in optimizing data processing workflows, reducing operational costs, and implementing robust data security and governance frameworks.
-•	Experience with IAM RBAC, Entra ID, Azure Key Vault, and comprehensive security configuration for enterprisegrade data platforms.
-•	Expert in data migration strategies, complex SQL queries optimization, and job scheduling frameworks for enterprise-grade data platforms and analytics solutions.
-TECHNICAL SKILLS
+Certainly! Here's an **optimized, concise, ATS-friendly resume** version that highlights key achievements and skills, trims redundancies, and keeps focus on impactful keywords and clear formatting.
 
-•	Big Data Tools: Apache Spark, Hadoop, HDFS, Hive, Sqoop, Delta Lake
-•	Programming Languages: Python, PySpark, SQL, Scala, Java
-•	ETL & Workflow Tools: Airflow, dbt
-•	Cloud Platforms: Microsoft Azure (ADF, ADLS, Synapse, Databricks), AWS (S3, EMR, Glue, Lambda, Redshift)
-•	Databases: Oracle, Snowflake, MySQL, PostgreSQL, MongoDB, Azure SQL
-•	DevOps & CI/CD: GitHub Actions, Azure DevOps, Git, Docker
-•	Visualization Tools: Power BI
-•	AI/ML & GenAI: LLM, MLlib, Scikit-learn, pandas, NumPy, TensorFlow, PyTorch, LangChain, RAG, GPT, Prompt Engineering, OpenAI
-•	Others: Data Governance, Data Quality Frameworks, Agile, Jira, Confluence
-PROFESSIONAL EXPERIENCE
-Role: Senior Data Engineer
-Client: PNC Bank 	April 2024 – Present
-Responsibilities:
-•	Built scalable Data Mart on top of CDP Layer using Medallion Architecture to support 22 AI models, modernizing data architecture for real-time insights and report generation.
-•	Designed Azure Data Factory (ADF) pipelines for end-to-end data ingestion, transformation, and orchestration from multiple data sources including SQL Server and Oracle databases.
-•	Implemented automated job scheduling and orchestration workflows using Azure Data Factory triggers and parameterized pipelines for optimized data processing cycles.
-•	Designed comprehensive data migration strategies from legacy systems to Azure cloud platform with zerodowntime deployment and data integrity validation.
-•	Developed complex SQL queries and stored procedures for data transformation, aggregation, and business logic implementation across multiple database systems.
-•	Created advanced Spark SQL scripts to populate reporting dimension and fact tables with performance optimization and business logic implementation.
-•	Integrated Azure Key Vault with ADF-linked services for secure credential management and enterprise-grade security compliance across all data pipelines.
-•	Configured Unity Catalog for data governance, role-based access control (RBAC), and metadata management across the entire data platform.
-•	Developed Delta Live Tables (DLT) for incremental loading, materialized views, and automated data quality checks with schema evolution support.
-•	Implemented Change Data Capture (CDC) processes for real-time data synchronization and incremental loading to improve data freshness and reduce processing latency.
-•	Automated monitoring and alerting via Azure Monitor and Log Analytics with custom dashboards for real-time job tracking and SLA adherence optimization.
-•	Established CI/CD pipelines using GitHub Actions and Azure DevOps to automate deployments with version control and environment management.
-•	Architected comprehensive data security framework using IAM RBAC, Entra ID, and Azure Key Vault for enterprisegrade access control and compliance.
-•	Optimized Apache Spark processing workflows reducing operational costs by 30% while maintaining highperformance data processing capabilities.
-•	Designed API-based ingestion frameworks supporting multiple data formats and sources with automated schema detection and data validation processes.
-Environment: Azure Data Factory, Azure Databricks, Delta Lake, Apache Spark, PySpark, Azure Data Lake Gen2, Azure
-Synapse Analytics, Unity Catalog, Delta Live Tables, Azure Key Vault, Azure Monitor, Log Analytics, GitHub Actions, Azure DevOps, IAM RBAC, Entra ID, SQL Server, Oracle, Spark SQL, CDC, API Integration
-Role: Cloud Data Engineer Client: Prudential 	Dec 2020 – Sept
-2023
-Responsibilities:
-•	Developed scalable data pipeline architecture converting unsuccessful insurance applications to qualified leads and integrating with Salesforce Service Cloud for automated lead distribution.
-•	Engineered comprehensive ETL pipelines using AWS Glue, Apache Spark (PySpark), and Python to process large volumes of financial and transactional data for insurance workflows.
-•	Designed secure data lake architecture on Amazon S3 with AWS Lake Formation governance ensuring fine-grained access control and regulatory compliance.
-•	Executed large-scale data migration projects from legacy Oracle and SQL Server systems to AWS cloud infrastructure with comprehensive data validation and quality assurance.
-•	Implemented automated job scheduling using AWS Data Pipeline and Airflow ensuring reliable data processing workflows and timely delivery of analytics-ready datasets.
-•	Optimized complex SQL queries and database performance tuning achieving 30% faster query execution in Redshift with advanced indexing and partitioning strategies.
-•	Integrated Salesforce Sales Cloud, SAP, and ServiceNow systems creating unified data platform for comprehensive customer relationship management and operational analytics.
-•	Automated pipeline deployment using GitHub Actions with comprehensive version control, testing, and metadata consistency management across multiple environments.
-•	Orchestrated complex data workflows using Airflow ensuring timely availability of analytics-ready data in Redshift and visualization tools.
-•	Built unified metadata and master data management framework leveraging AWS Glue Data Catalog for streamlined data lineage and hierarchical data access control.
-Environment: AWS Glue, Amazon S3, Redshift, AWS Lake Formation, AWS Lambda, Apache Spark, PySpark, Apache
-Kafka, Spark Streaming, Docker, Python, Oracle, GitHub Actions, AWS Glue Data Catalog, CloudWatch, Salesforce Sales Cloud, SAP, ServiceNow, Airflow, Power BI
-Role: Azure Data Engineer Client: Cipla Pharmaceuticals 	Jan 2019 – Dec 2020
-Responsibilities:
-•	Modernized healthcare data infrastructure integrating clinical, operational, and patient data from on-premises Hadoop systems into Azure cloud platform.
-•	Built hybrid cloud platform integrating on-premises Hadoop (HDFS, Hive, Spark) with Azure Data Lake Gen2 and Azure Synapse Analytics for scalable healthcare data processing.
-•	Developed ETL pipelines using Azure Data Factory moving data from clinical systems, EHRs, and legacy databases into Azure SQL DB and Synapse for downstream analytics.
-•	Implemented real-time streaming workflows using Apache Kafka, Azure Event Hubs, and Structured Streaming in Databricks for live clinical events processing.
-•	Contributed to healthcare-specific data marts development using dbt enabling insights into treatment outcomes and patient adherence metrics through Azure Synapse.
-•	Supported cloud migration from Oracle, Teradata, and Hadoop to Azure using Azure Database Migration Service ensuring data accuracy and regulatory compliance including HIPAA standards.
-Environment: Azure Data Factory, Azure Synapse Analytics, Databricks, Delta Lake, Apache Spark, PySpark, SQL, Apache Kafka, Azure Event Hubs, HDFS, Hive, Azure DevOps, Azure Monitor, dbt, Azure SQL DB, Oracle, Teradata
-EDUCATION
+---
+
+**Yallaiah Onteru**
+Senior Data Engineer
+[Portfolio](#) | [LinkedIn](#) | [onteruyallaiah414@gmail.com](mailto:onteruyallaiah414@gmail.com) | (414)-275-0857
+
+---
+
+### PROFESSIONAL SUMMARY
+
+Senior Data Engineer with 6+ years experience in Azure and AWS environments. Skilled in building scalable data pipelines using Azure Data Factory, Databricks, PySpark, and Delta Lake. Expertise in Medallion Architecture, real-time streaming, data governance, and AI model support. Proven ability to optimize ETL workflows, automate CI/CD, and implement secure data platforms compliant with SOX and PCI-DSS.
+
+---
+
+### TECHNICAL SKILLS
+
+* **Big Data:** Apache Spark, Hadoop, Hive, Delta Lake
+* **Languages:** Python, PySpark, SQL, Scala, Java
+* **ETL & Orchestration:** Azure Data Factory (ADF), Airflow, dbt
+* **Cloud:** Microsoft Azure (ADF, ADLS, Synapse, Databricks), AWS (S3, Glue, Redshift)
+* **Databases:** Oracle, Snowflake, MySQL, PostgreSQL, Azure SQL
+* **DevOps:** GitHub Actions, Azure DevOps, Docker
+* **Visualization:** Power BI
+* **AI/ML:** LLMs, MLlib, TensorFlow, PyTorch, LangChain, GPT, Prompt Engineering
+* **Governance & Security:** Unity Catalog, Azure Key Vault, IAM RBAC, Entra ID
+
+---
+
+### PROFESSIONAL EXPERIENCE
+
+**Senior Data Engineer | PNC Bank**
+*Apr 2024 – Present*
+
+* Built Data Marts supporting 22 AI models using Medallion Architecture, cutting model training times by 45%.
+* Developed Azure Data Factory pipelines ingesting SQL Server, Oracle, and API data with event-driven triggers and parameterization.
+* Implemented Delta Live Tables for incremental loads, automated schema evolution, and data quality validation.
+* Enabled real-time data sync with Change Data Capture (CDC), improving data freshness and reducing latency.
+* Secured pipelines with Azure Key Vault integration; governed data access using Unity Catalog and RBAC compliant with SOX/PCI-DSS.
+* Automated monitoring with Azure Monitor and Log Analytics for SLA adherence and proactive alerts.
+* Established CI/CD pipelines with GitHub Actions and Azure DevOps, ensuring seamless deployment.
+* Tuned Spark SQL scripts for performance, reducing query time by 30%.
+* Designed API ingestion frameworks with schema detection and validation.
+
+*Technologies:* Azure Data Factory, Databricks, Delta Lake, Apache Spark, ADLS Gen2, Synapse Analytics, Unity Catalog, Delta Live Tables, Azure Key Vault, Azure Monitor, Log Analytics, GitHub Actions, Azure DevOps, SQL Server, Oracle, CDC
+
+---
+
+**Cloud Data Engineer | Prudential**
+*Dec 2020 – Sep 2023*
+
+* Built ETL pipelines with AWS Glue and PySpark processing large financial datasets.
+* Managed data lake architecture on Amazon S3 with Lake Formation governance.
+* Migrated data from Oracle and SQL Server to AWS with validation ensuring accuracy.
+* Automated scheduling with AWS Data Pipeline and Airflow for timely dataset delivery.
+* Tuned Redshift queries for 30% faster execution.
+* Integrated Salesforce, SAP, and ServiceNow for unified analytics platforms.
+* Automated CI/CD with GitHub Actions supporting multi-environment deployments.
+
+*Technologies:* AWS Glue, Amazon S3, Redshift, Lake Formation, Apache Spark, PySpark, Kafka, Airflow, Power BI
+
+---
+
+**Azure Data Engineer | Cipla Pharmaceuticals**
+*Jan 2019 – Dec 2020*
+
+* Migrated and modernized healthcare data from on-prem Hadoop to Azure Data Lake Gen2 and Synapse.
+* Built ETL pipelines with Azure Data Factory for clinical and operational data.
+* Developed real-time streaming with Kafka, Azure Event Hubs, and Databricks Structured Streaming.
+* Supported cloud migration from Oracle, Teradata, Hadoop ensuring HIPAA compliance.
+* Developed data marts with dbt enabling treatment outcome analytics.
+
+*Technologies:* Azure Data Factory, Synapse Analytics, Databricks, Delta Lake, Apache Spark, Kafka, Azure Event Hubs, Azure SQL DB, Oracle
 
 Master in Information Technology with a concentration in Artificial Intelligence and Data Analytics, at University of Wisconsin-Milwaukee
 CERTIFICATIONS
